@@ -60,11 +60,12 @@ public class Country {
 
     @Override
     public String toString() {
-        return "Country{" +
-                "code='" + code + '\'' +
-                ", name='" + name + '\'' +
-                ", internetUsers=" + internetUsers +
-                ", adultLiteracyRate=" + adultLiteracyRate +
-                '}';
+        String netUsers = internetUsers==null ? "--" :
+                String.format("%.02f", Math.round(internetUsers * 100.0)/100.0);
+        String adultLitRate = adultLiteracyRate==null ? "--" :
+                String.format("%.02f",Math.round(adultLiteracyRate * 100.0)/100.0);
+
+        return String.format("%-32s", name) + String.format("%-18s",netUsers) + String.format("%-18s", adultLitRate);
     }
+
 }
