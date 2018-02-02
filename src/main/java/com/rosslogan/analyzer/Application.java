@@ -11,9 +11,6 @@ import org.hibernate.service.ServiceRegistry;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Created by Ross on 29/01/2018.
- */
 public class Application {
     private static final SessionFactory sessionFactory = buildSessionFactory();
     private static final String COUNTRY_HEADER = String.format("%-32s", "Country");
@@ -21,6 +18,11 @@ public class Application {
     private static final String LITERACY_HEADER = String.format("%-18s", "Literacy");
     private static final String RESULTS_HEADER = COUNTRY_HEADER + INTERNET_USERS_HEADER + LITERACY_HEADER + "%n";
     private static final String COLUMNS_RESULTS_SEPARATOR = String.format("%-66s", "-").replace(" ", "-") + "%n";
+    private static final String STATISTICS_MIN_INTERNET_USERS_LABEL = String.format("%-26s", "Min Internet Users:");
+    private static final String STATISTICS_MAX_INTERNET_USERS_LABEL = String.format("%-26s", "Max Internet users:");
+    private static final String STATISTICS_MIN_ADULT_LITERACY_LABEL = String.format("%-26s", "Min Adult Literacy:");
+    private static final String STATISTICS_MAX_ADULT_LITERACY_LABEL = String.format("%-26s", "Max Adult Literacy:");
+    private static final String STATISTICS_CORRELATION_LABEL = String.format("%-26s", "Correlation Coefficient:");
     private static final Comparator<Country> COMPARE_INTERNET_USERS =
             Comparator.comparingDouble(Country::getInternetUsers);
     private static final Comparator<Country> COMPARE_ADULT_LITERACY =
@@ -33,21 +35,32 @@ public class Application {
     }
 
     public static void main(String[] args) {
-        List<Country> countryData = fetchAllData();
 
-        displayAllCountryData(countryData);
+        String selection="";
+        Scanner scanner = new Scanner(System.in);
 
-
-        displayAllCountryStatistics(countryData);
-
+        while(!selection.equals("Q")){
+            displayUserSelectionOptions();
+            selection = scanner.next();
+            switch (selection) {
+                case "A": displayAllCountryData(fetchAllData());
+                          break;
+                case "B": displayAllCountryStatistics(fetchAllData());
+                          break;
+                case "Q": System.out.printf("%nExiting");
+                          System.exit(0);
+                default : System.out.printf("%n Invalid option selected, please try again!");
+                          break;
+            }
+        }
     }
 
-    private static Country getMinInternetUser(List<Country> countryData){
-        return countryData.stream().min(COMPARE_INTERNET_USERS).get();
-    }
-
-    private static Country getMaxInternetUser(List<Country> countryData){
-        return countryData.stream().max(COMPARE_INTERNET_USERS).get();
+    private static void displayUserSelectionOptions() {
+        System.out.printf("%n%nPlease select an option from the below by " +
+                "entering the letter for the option you are requesting: %n%n");
+        System.out.println("(A) - Display All Country Data");
+        System.out.println("(B) - Display Statistics");
+        System.out.println("(Q) - Quit");
     }
 
     private static void displayAllCountryStatistics(List<Country> countryData) {
@@ -66,30 +79,34 @@ public class Application {
         Country maxAdultLiteracyRate = validAdultLiteracy.stream().max(COMPARE_ADULT_LITERACY).get();
 
         System.out.printf("%n%nStatistics Output%n%n");
-        System.out.println("Min Internet Users: " + minInternetUsers.getName() +
-                " " + minInternetUsers.getInternetUsers());
-        System.out.println("Max Internet users: " + maxInternetUsers.getName() +
-                " " + maxInternetUsers.getInternetUsers());
-        System.out.println("Min Adult Literacy: " + minAdultLiteracyRate.getName() +
-                " " + minAdultLiteracyRate.getAdultLiteracyRate());
-        System.out.println("Max Adult Literacy: " + maxAdultLiteracyRate.getName() +
-                " " + maxAdultLiteracyRate.getAdultLiteracyRate());
+        System.out.println(STATISTICS_MIN_INTERNET_USERS_LABEL + String.format("%-32s", minInternetUsers.getName()) +
+                String.format("%.02f", Math.round(minInternetUsers.getInternetUsers() * 100.0)/100.0));
+        System.out.println(STATISTICS_MAX_INTERNET_USERS_LABEL + String.format("%-32s", maxInternetUsers.getName()) +
+                String.format("%.02f", Math.round(maxInternetUsers.getInternetUsers() * 100.0)/100.0));
+        System.out.println(STATISTICS_MIN_ADULT_LITERACY_LABEL + String.format("%-32s", minAdultLiteracyRate.getName()) +
+                String.format("%.02f", Math.round(minAdultLiteracyRate.getInternetUsers() * 100.0)/100.0));
+        System.out.println(STATISTICS_MAX_ADULT_LITERACY_LABEL + String.format("%-32s", maxAdultLiteracyRate.getName()) +
+                String.format("%.02f", Math.round(maxAdultLiteracyRate.getInternetUsers() * 100.0)/100.0));
 
         List<Country> validIndicators = countryData.stream().filter(country -> country.getInternetUsers()!=null)
                 .filter(country -> country.getAdultLiteracyRate()!=null).collect(Collectors.toList());
 
         double correlationCoefficient = calculateCorrelationCoefficient(validIndicators);
-        System.out.println("Correlation Coefficient: " + correlationCoefficient);
+        System.out.printf("%n" + STATISTICS_CORRELATION_LABEL + correlationCoefficient);
 
     }
 
     private static double calculateCorrelationCoefficient(List<Country> countryData){
         Double internetUserMean = countryData.stream().mapToDouble(c -> c.getInternetUsers()).average().getAsDouble();
-        Double internetUserSD = calculateStandardDeviationInternetUser(countryData);
+        List<Double> internetUserValues = countryData.stream().map(Country::getInternetUsers)
+                .collect(Collectors.toList());
+        Double internetUserSD = calculateStandardDeviation(internetUserValues, internetUserMean);
 
         Double adultLiteracyMean = countryData.stream().mapToDouble(c -> c.getAdultLiteracyRate())
                 .average().getAsDouble();
-        Double adultLiteracySD = calculateStandardDeviationAdultLiteracy(countryData);
+        List<Double> adultLiteracyValues = countryData.stream().map(Country::getAdultLiteracyRate)
+                .collect(Collectors.toList());
+        Double adultLiteracySD = calculateStandardDeviation(adultLiteracyValues, adultLiteracyMean);
 
         double totalStandardizedValues = 0;
         for(Country country: countryData){
@@ -102,27 +119,12 @@ public class Application {
 
     }
 
-    private static double calculateStandardDeviationInternetUser(List<Country> countryData){
-        Double internetUserMean = countryData.stream().mapToDouble(c -> c.getInternetUsers()).average().getAsDouble();
-
+    private static double calculateStandardDeviation(List<Double> data, double mean){
         double total = 0;
-        for(Country country: countryData){
-            total = total + Math.pow((country.getInternetUsers()- internetUserMean),2);
+        for(Double value: data){
+            total = total + Math.pow((value - mean), 2);
         }
-        total = Math.sqrt((total/(countryData.size()-1)));
-        return total;
-    }
-
-    private static double calculateStandardDeviationAdultLiteracy(List<Country> countryData){
-        Double adultLiteracyMean = countryData.stream().mapToDouble(c -> c.getAdultLiteracyRate())
-                .average().getAsDouble();
-
-        double total = 0;
-        for(Country country: countryData){
-            total = total + Math.pow((country.getAdultLiteracyRate()- adultLiteracyMean),2);
-        }
-        total = Math.sqrt((total/(countryData.size() -1)));
-        return total;
+        return Math.sqrt((total/(data.size()-1)));
     }
 
     private static void displayAllCountryData(List<Country> countryData) {
