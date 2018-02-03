@@ -1,4 +1,4 @@
-# Team Treehouse Project 5 - Countries of the World
+# Team Treehouse Project 6 - Hibernate Countries Analyzer
 
 ## Summary
 
