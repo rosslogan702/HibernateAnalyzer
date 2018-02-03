@@ -30,6 +30,7 @@ public class Application {
             Comparator.comparingDouble(Country::getInternetUsers);
     private static final Comparator<Country> COMPARE_ADULT_LITERACY =
             Comparator.comparingDouble(Country::getAdultLiteracyRate);
+    private static final Scanner scanner = new Scanner(System.in);
 
 
     private static SessionFactory buildSessionFactory() {
@@ -40,10 +41,13 @@ public class Application {
     public static void main(String[] args) {
 
         String selection = "";
-        Scanner scanner = new Scanner(System.in);
+        scanner.useDelimiter("\\n");
 
         while (!selection.equals("Q")) {
             displayUserSelectionOptions();
+            while(!scanner.hasNext()){
+                // wait until input is ready to be parsed
+            }
             selection = scanner.next();
             switch (selection) {
                 case "A":
@@ -69,6 +73,7 @@ public class Application {
                     break;
             }
         }
+        scanner.close();
     }
 
     private static void displayAllCountryData(List<Country> countryData) {
@@ -98,21 +103,21 @@ public class Application {
         System.out.println(STATISTICS_MAX_INTERNET_USERS_LABEL + String.format("%-32s", maxInternetUsers.getName()) +
                 String.format("%.02f", Math.round(maxInternetUsers.getInternetUsers() * 100.0) / 100.0));
         System.out.println(STATISTICS_MIN_ADULT_LITERACY_LABEL + String.format("%-32s", minAdultLiteracyRate.getName()) +
-                String.format("%.02f", Math.round(minAdultLiteracyRate.getInternetUsers() * 100.0) / 100.0));
+                String.format("%.02f", Math.round(minAdultLiteracyRate.getAdultLiteracyRate() * 100.0) / 100.0));
         System.out.println(STATISTICS_MAX_ADULT_LITERACY_LABEL + String.format("%-32s", maxAdultLiteracyRate.getName()) +
-                String.format("%.02f", Math.round(maxAdultLiteracyRate.getInternetUsers() * 100.0) / 100.0));
+                String.format("%.02f", Math.round(maxAdultLiteracyRate.getAdultLiteracyRate() * 100.0) / 100.0));
 
         List<Country> validIndicators = countryData.stream().filter(country -> country.getInternetUsers() != null)
                 .filter(country -> country.getAdultLiteracyRate() != null).collect(Collectors.toList());
 
         double correlationCoefficient = calculateCorrelationCoefficient(validIndicators);
-        System.out.printf("%n" + STATISTICS_CORRELATION_LABEL + correlationCoefficient);
+        System.out.printf("%n" + STATISTICS_CORRELATION_LABEL + String.format("%.02f",
+                Math.round(correlationCoefficient * 100.0)/100.0));
 
     }
 
 
     private static void addCountry() {
-        Scanner scanner = new Scanner(System.in);
         System.out.printf("%n%nPlease enter three letter code of Country%n");
         try {
             String code = scanner.next();
@@ -125,7 +130,6 @@ public class Application {
             add(new Country.CountryBuilder(code, name).
                     withInternetUsers(numInternetUsers).
                     withAdultLiteracyRate(adultLiteracyRate).build());
-            scanner.close();
         } catch (InputMismatchException exception) {
             System.out.println("Input type entered was incorrect!!! Please retry!");
         } catch (HibernateException exception) {
@@ -135,7 +139,6 @@ public class Application {
     }
 
     private static void editCountry() {
-        Scanner scanner = new Scanner(System.in);
         System.out.printf("%n%nPlease enter three letter code of Country%n");
         try {
             String code = scanner.next();
@@ -145,8 +148,6 @@ public class Application {
                         "Please re-check code and try again!");
             } else {
                 System.out.printf("You are now editing: " + country + "%n");
-                System.out.printf("%nPlease enter the edited country code%n");
-                country.setCode(scanner.next());
                 System.out.printf("Please enter the edited name of country%n");
                 country.setName(scanner.next());
                 System.out.printf("Please enter the edited number of internet users%n");
@@ -164,7 +165,6 @@ public class Application {
     }
 
     private static void deleteCountry() {
-        Scanner scanner = new Scanner(System.in);
         System.out.printf("%n%nPlease enter three letter code of Country%n");
         try {
             String code = scanner.next();
