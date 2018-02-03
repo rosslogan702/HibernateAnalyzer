@@ -19,6 +19,9 @@ Features:
 For calculation of the correlation coefficient standard deviation was used. Assumption
 was that population standard deviation formula was used and not sample. 
 
+For the EDIT feature, only the country name, internet users and adult literacy rate
+can be edited. 
+
 
 ## Built With
 
