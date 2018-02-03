@@ -20,7 +20,12 @@ For calculation of the correlation coefficient standard deviation was used. Assu
 was that population standard deviation formula was used and not sample. 
 
 For the EDIT feature, only the country name, internet users and adult literacy rate
-can be edited. 
+can be edited. This is because hibernate is using the primary key ID as a reference
+for what Country object should be updated in the table.
+
+If you want to change a country code, the best approach would be to delete from
+the database table and then add another entry. All of which can be completed via
+the command line UI.
 
 
 ## Built With
