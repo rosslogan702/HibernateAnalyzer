@@ -14,6 +14,11 @@ Features:
 4. Editing a country in the database
 5. Deleting a country in the database
 
+## Assumptions
+
+For calculation of the correlation coefficient standard deviation was used. Assumption
+was that population standard deviation formula was used and not sample. 
+
 
 ## Built With
 
