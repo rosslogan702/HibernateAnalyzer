@@ -5,7 +5,7 @@ import javax.persistence.*;
 @Entity
 public class Country {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column
     private String code;
     @Column
     private String name;
@@ -19,11 +19,11 @@ public class Country {
 
     }
 
-    public Country(String code, String name, Double internetUsers, Double adultLiteracyRate) {
-        this.code = code;
-        this.name = name;
-        this.internetUsers = internetUsers;
-        this.adultLiteracyRate = adultLiteracyRate;
+    public Country (CountryBuilder builder){
+        this.code = builder.code;
+        this.name = builder.name;
+        this.internetUsers = builder.internetUsers;
+        this.adultLiteracyRate = builder.adultLiteracyRate;
     }
 
     public String getCode() {
@@ -65,7 +65,34 @@ public class Country {
         String adultLitRate = adultLiteracyRate==null ? "--" :
                 String.format("%.02f",Math.round(adultLiteracyRate * 100.0)/100.0);
 
-        return String.format("%-32s", name) + String.format("%-18s",netUsers) + String.format("%-18s", adultLitRate);
+        return String.format("%-6s", code) + String.format("%-32s", name) + String.format("%-18s",netUsers)
+                + String.format("%-18s", adultLitRate);
+    }
+
+    public static class CountryBuilder {
+        private String code;
+        private String name;
+        private Double internetUsers;
+        private Double adultLiteracyRate;
+
+        public CountryBuilder(String code, String name){
+            this.code = code;
+            this.name = name;
+        }
+
+        public CountryBuilder withInternetUsers(Double internetUsers){
+            this.internetUsers = internetUsers;
+            return this;
+        }
+
+        public CountryBuilder withAdultLiteracyRate(Double adultLiteracyRate){
+            this.adultLiteracyRate = adultLiteracyRate;
+            return this;
+        }
+
+        public Country build (){
+            return new Country(this);
+        }
     }
 
 }
